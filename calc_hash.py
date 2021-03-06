@@ -7,9 +7,15 @@ import hashlib
 import queue
 
 def generate(file_path, hash_algo, *hash_algos):
-    """ Takes a path like object or path string and a list of hash algorithms as argument and
-    return a dictionary of calculated hashes.
+    """Takes a single path like object/path string and a single algorithm name/tuple 
+    of algorithm names or  as argument and returns a dictionary of calculated hashes.
+    e.g. generate("filepath", "md5", "sha256")
     { filepath: {"md5": "md5 hash", "sha256": "sha256 hash},...}
+    >>> 
+    >>> import calc_hash
+    >>> calc_hash.generate("~/Downloads/chrome-linux.zip", "md5", "sha1")
+    {'/home/tejas/Downloads/chrome-linux.zip': {'md5': '3d9d23669bd49f2bf5d92b076f4428c8', 'sha1': '64c73a9fe00079a828bdd04ec42aa2f2410991a3'}}
+    >>> 
     """
 # os.path.expanduser(path) will expand the path if it starts with ~ 
 # If path doesn't contain ~ it will be returned unchanged. 
@@ -57,36 +63,32 @@ def validate():
     pass
 
 if __name__ == "__main__":
-    formatter_class = argparse.RawDescriptionHelpFormatter
-    description = ("Provide -f file path(s) and -a hash algorithm(s) to calculate \n"
-                     "file hash. Accepts single file/directory or space-separated \n"
-                     "list of files/directories. Accepts single algorithm or \n"
-                     "space-seperated list of algorithms.")
-    description_new ='''
+    formatter = argparse.RawDescriptionHelpFormatter
+    descr ='''
         Provide -f file path(s) and -a hash algorithm(s) to calculate file hash.
         Accepts single file/directory or space-separated list of files/directories.
         Accepts single algorithm or space-seperated list of algorithms.
         '''
-    parser = argparse.ArgumentParser(description=description_new, formatter_class=formatter_class)
+    parser = argparse.ArgumentParser(description=descr, formatter_class=formatter)
     parser.add_argument("-f", "--file", dest="filepath", nargs='+',
-                        type=pathlib.Path, required=True , help="file/directory path(s)")
+                        type=pathlib.Path, required=True,
+                        help="file/directory path(s)")
+    _a_choices = hashlib.algorithms_available
     parser.add_argument("-a", "--algo", dest="hash_algo", type=str, nargs='+',
                         metavar="hash_algorithm",
-                        choices=hashlib.algorithms_available, required=True,
+                        choices=_a_choices, required=True,
                         help="Suppprted algorithms:  %(choices)s")
+    _r_help = "Recursively scan subdirectories for files if -f is directory"
     parser.add_argument("-r", "--recurse", dest="recurse",
                         default=False, action="store_true",
-                        required=False,
-                        help="Recursively scan subdirectories for files if -f is directory")
+                        required=False, help=_r_help)
     args = parser.parse_args()
     hash_tuple = tuple(args.hash_algo)
-    filepaths = []
     dirpaths = queue.Queue()
     print(args.filepath)
     print(args.recurse)
     for file in args.filepath:
         if (file.exists() and file.is_file()) and not file.is_symlink():
-            filepaths.append(file)
 #            print(file, hash_tuple)
             hash = generate(file, *args.hash_algo)
             print(hash)
