@@ -4,10 +4,7 @@ import io
 import argparse
 import pathlib
 import hashlib
-import collections
 import queue
-import stat
-import sys
 
 def generate(file_path, hash_algo, *hash_algos):
     """ Takes a path like object and a list of hash algorithms as argument and
@@ -106,5 +103,3 @@ if __name__ == "__main__":
                 print(hash2)
             else:
                 print(f'file or dir {_file} not found')
-
-
