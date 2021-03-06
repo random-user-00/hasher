@@ -36,7 +36,7 @@ def generate(file_path, hash_algo, *hash_algos):
 
     if os.path.exists(path_as_str) and os.path.isfile(path_as_str):
         buffer_size = io.DEFAULT_BUFFER_SIZE
-        read_size = buffer_size
+        read_size = io.DEFAULT_BUFFER_SIZE
         with open(path_as_str, 'rb', buffering=buffer_size) as _f:
             content = _f.read(read_size)
 #            reads = 1
@@ -65,9 +65,10 @@ def validate():
 if __name__ == "__main__":
     formatter = argparse.RawDescriptionHelpFormatter
     descr ='''
-        Provide -f file path(s) and -a hash algorithm(s) to calculate file hash.
+        Provide -f file/dir path(s) and -a hash algorithm(s) to calculate file hash.
         Accepts single file/directory or space-separated list of files/directories.
         Accepts single algorithm or space-seperated list of algorithms.
+        Use -r if you wish to recursively scan directory.
         '''
     parser = argparse.ArgumentParser(description=descr, formatter_class=formatter)
     parser.add_argument("-f", "--file", dest="filepath", nargs='+',
@@ -83,27 +84,19 @@ if __name__ == "__main__":
                         default=False, action="store_true",
                         required=False, help=_r_help)
     args = parser.parse_args()
-    hash_tuple = tuple(args.hash_algo)
-    dirpaths = queue.Queue()
-    print(args.filepath)
-    print(args.recurse)
-    for file in args.filepath:
-        if (file.exists() and file.is_file()) and not file.is_symlink():
-#            print(file, hash_tuple)
-            hash = generate(file, *args.hash_algo)
-            print(hash)
-        elif (file.exists() and file.is_dir()) and not file.is_symlink():
-            dirpaths.put(file.resolve())   
-        else:
-            print(f'file/dir path {file} not found or it is a symbolic link.')
-    
-    while not dirpaths.empty():
-        subpath = dirpaths.get()
+
+    dirpaths_q = queue.Queue()
+    for _thefile in args.filepath:  # -f arguments to queue
+        dirpaths_q.put(_thefile)
+
+    while not dirpaths_q.empty():
+        subpath = dirpaths_q.get()
         for _file in subpath.iterdir():
             if (_file.exists() and _file.is_dir()) and not _file.is_symlink():
-                dirpaths.put(_file)
+                if args.recurse:
+                    dirpaths_q.put(_file)
             elif (_file.exists() and _file.is_file()) and not _file.is_symlink():
-                hash2 = generate(_file, *args.hash_algo)
+                hash2 = generate(_file, *args.hash_algo)  # Unpack args.hash_algo
                 print(hash2)
             else:
                 print(f'file/dir path {_file} not found or it is a symbolic link.')
