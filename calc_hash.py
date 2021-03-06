@@ -93,7 +93,7 @@ if __name__ == "__main__":
         elif (file.exists() and file.is_dir()) and not file.is_symlink():
             dirpaths.put(file.resolve())   
         else:
-            print(f'file {file} not found')
+            print(f'file/dir path {file} not found or it is a symbolic link.')
     
     while not dirpaths.empty():
         subpath = dirpaths.get()
@@ -104,4 +104,4 @@ if __name__ == "__main__":
                 hash2 = generate(_file, *args.hash_algo)
                 print(hash2)
             else:
-                print(f'file or dir {_file} not found')
+                print(f'file/dir path {_file} not found or it is a symbolic link.')
