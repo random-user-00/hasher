@@ -9,8 +9,8 @@ import queue
 def generate(file_path, hash_algo, *hash_algos):
     """Takes a single path like object/path string and a single algorithm name/tuple 
     of algorithm names or  as argument and returns a dictionary of calculated hashes.
-    e.g. generate("filepath", "md5", "sha256")
-    { filepath: {"md5": "md5 hash", "sha256": "sha256 hash},...}
+    e.g. generate("userpaths", "md5", "sha256")
+    { userpaths: {"md5": "md5 hash", "sha256": "sha256 hash},...}
     >>> 
     >>> import calc_hash
     >>> calc_hash.generate("~/Downloads/chrome-linux.zip", "md5", "sha1")
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         Use -r if you wish to recursively scan directory.
         '''
     parser = argparse.ArgumentParser(description=descr, formatter_class=formatter)
-    parser.add_argument("-f", "--file", dest="filepath", nargs='+',
+    parser.add_argument("-f", "--file", dest="userpaths", nargs='+',
                         type=pathlib.Path, required=True,
                         help="file/directory path(s)")
     _a_choices = hashlib.algorithms_available
@@ -85,18 +85,18 @@ if __name__ == "__main__":
                         required=False, help=_r_help)
     args = parser.parse_args()
 
-    dirpaths_q = queue.Queue()
-    for _thefile in args.filepath:  # -f arguments to queue
-        dirpaths_q.put(_thefile)
+    path_q = queue.Queue()
+    for _userpath in args.userpaths:  # -f arguments to queue
+        path_q.put(_userpath)
 
-    while not dirpaths_q.empty():
-        subpath = dirpaths_q.get()
-        for _file in subpath.iterdir():
-            if (_file.exists() and _file.is_dir()) and not _file.is_symlink():
+    while not path_q.empty():
+        path = path_q.get()
+        for child in path.iterdir():
+            if (child.exists() and child.is_dir()) and not child.is_symlink():
                 if args.recurse:
-                    dirpaths_q.put(_file)
-            elif (_file.exists() and _file.is_file()) and not _file.is_symlink():
-                hash2 = generate(_file, *args.hash_algo)  # Unpack args.hash_algo
-                print(hash2)
+                    path_q.put(child)
+            elif (child.exists() and child.is_file()) and not child.is_symlink():
+                hash = generate(child, *args.hash_algo)  # Unpack args.hash_algo
+                print(hash)
             else:
-                print(f'file/dir path {_file} not found or it is a symbolic link.')
+                print(f'file/dir path {child} not found or it is a symbolic link.')
