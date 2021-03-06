@@ -7,7 +7,7 @@ import hashlib
 import queue
 
 def generate(file_path, hash_algo, *hash_algos):
-    """ Takes a path like object and a list of hash algorithms as argument and
+    """ Takes a path like object or path string and a list of hash algorithms as argument and
     return a dictionary of calculated hashes.
     { filepath: {"md5": "md5 hash", "sha256": "sha256 hash},...}
     """
@@ -57,48 +57,50 @@ def validate():
     pass
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Provide -f file path(s) and "
-                                     "-a hash algorithm(s) to calculate file hash."
-                                     "Accepts single file/directory or space separated list of files/directories."
-                                     "Accepts single algorithm or space list of algorithms.")
+    formatter_class = argparse.RawDescriptionHelpFormatter
+    description = ("Provide -f file path(s) and -a hash algorithm(s) to calculate \n"
+                     "file hash. Accepts single file/directory or space-separated \n"
+                     "list of files/directories. Accepts single algorithm or \n"
+                     "space-seperated list of algorithms.")
+    description_new ='''
+        Provide -f file path(s) and -a hash algorithm(s) to calculate file hash.
+        Accepts single file/directory or space-separated list of files/directories.
+        Accepts single algorithm or space-seperated list of algorithms.
+        '''
+    parser = argparse.ArgumentParser(description=description_new, formatter_class=formatter_class)
     parser.add_argument("-f", "--file", dest="filepath", nargs='+',
                         type=pathlib.Path, required=True , help="file/directory path(s)")
     parser.add_argument("-a", "--algo", dest="hash_algo", type=str, nargs='+',
                         metavar="hash_algorithm",
                         choices=hashlib.algorithms_available, required=True,
                         help="Suppprted algorithms:  %(choices)s")
+    parser.add_argument("-r", "--recurse", dest="recurse",
+                        default=False, action="store_true",
+                        required=False,
+                        help="Recursively scan subdirectories for files if -f is directory")
     args = parser.parse_args()
     hash_tuple = tuple(args.hash_algo)
     filepaths = []
     dirpaths = queue.Queue()
     print(args.filepath)
+    print(args.recurse)
     for file in args.filepath:
-        if file.exists() and file.is_file():
+        if (file.exists() and file.is_file()) and not file.is_symlink():
             filepaths.append(file)
 #            print(file, hash_tuple)
             hash = generate(file, *args.hash_algo)
             print(hash)
-        elif file.exists() and file.is_dir():
-            dirpaths.put(file)   
+        elif (file.exists() and file.is_dir()) and not file.is_symlink():
+            dirpaths.put(file.resolve())   
         else:
             print(f'file {file} not found')
     
     while not dirpaths.empty():
         subpath = dirpaths.get()
         for _file in subpath.iterdir():
-            if _file.exists() and _file.is_dir():
-                if _file.is_symlink():
-                    _realpath = _file.resolve()
-                    print("printing", _realpath, _file, file.parent.resolve().joinpath(_file))
-                    _file_abspath = file.parent.resolve().joinpath(_file)
-                    if _file_abspath.is_relative_to(_realpath):
-                        print("recursive symbolic link detected")
-                        print(_realpath, _file, file.parent.resolve().joinpath(_file))
-                        continue
-                    else:
-                        dirpaths.put(_file)
+            if (_file.exists() and _file.is_dir()) and not _file.is_symlink():
                 dirpaths.put(_file)
-            elif _file.exists() and _file.is_file():
+            elif (_file.exists() and _file.is_file()) and not _file.is_symlink():
                 hash2 = generate(_file, *args.hash_algo)
                 print(hash2)
             else:
