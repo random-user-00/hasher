@@ -4,6 +4,8 @@ import io
 import argparse
 import pathlib
 import hashlib
+import collections
+import queue
 import stat
 import sys
 
@@ -23,16 +25,14 @@ def generate(file_path, hash_algo, *hash_algos):
     hash_algos =  (hash_algo,) + hash_algos
     hash_objects = {}
     hash_hex = {path_as_str: {}}
-#    if hash_algo not in {hashlib.algorithms_available}:
-#        print(f'Unknown hash algorithm {hash_algo}')
-#        return -1
+
     for algo in hash_algos:
         if algo not in hashlib.algorithms_available:
             raise ValueError(f'Unknown hash type {algo!r}, known types: {hashlib.algorithms_available}')
         hash_objects[algo] = hashlib.new(algo)
 
     if os.path.exists(path_as_str) and os.path.isfile(path_as_str):
-        buffer_size = io.DEFAULT_BUFFER_SIZE * 2
+        buffer_size = io.DEFAULT_BUFFER_SIZE
         read_size = buffer_size
         with open(path_as_str, 'rb', buffering=buffer_size) as _f:
             content = _f.read(read_size)
@@ -53,14 +53,19 @@ def generate(file_path, hash_algo, *hash_algos):
 #            print(hash_hex, sys.getsizeof(hash_hex))
 #            print(f'Total reads {reads}')
             return hash_hex
+def validate():
+    """Validate user input before passing it to generate().
 
+    """
+    pass
 
 if __name__ == "__main__":
-    
-    parser = argparse.ArgumentParser(description="Provide file path(s) and "
-                                     "hash algorithm(s) to calculate file hash")
+    parser = argparse.ArgumentParser(description="Provide -f file path(s) and "
+                                     "-a hash algorithm(s) to calculate file hash."
+                                     "Accepts single file/directory or space separated list of files/directories."
+                                     "Accepts single algorithm or space list of algorithms.")
     parser.add_argument("-f", "--file", dest="filepath", nargs='+',
-                        type=pathlib.Path, required=True , help="file path")
+                        type=pathlib.Path, required=True , help="file/directory path(s)")
     parser.add_argument("-a", "--algo", dest="hash_algo", type=str, nargs='+',
                         metavar="hash_algorithm",
                         choices=hashlib.algorithms_available, required=True,
@@ -68,13 +73,38 @@ if __name__ == "__main__":
     args = parser.parse_args()
     hash_tuple = tuple(args.hash_algo)
     filepaths = []
+    dirpaths = queue.Queue()
+    print(args.filepath)
     for file in args.filepath:
-        if file.exists():
+        if file.exists() and file.is_file():
             filepaths.append(file)
 #            print(file, hash_tuple)
             hash = generate(file, *args.hash_algo)
             print(hash)
+        elif file.exists() and file.is_dir():
+            dirpaths.put(file)   
         else:
             print(f'file {file} not found')
+    
+    while not dirpaths.empty():
+        subpath = dirpaths.get()
+        for _file in subpath.iterdir():
+            if _file.exists() and _file.is_dir():
+                if _file.is_symlink():
+                    _realpath = _file.resolve()
+                    print("printing", _realpath, _file, file.parent.resolve().joinpath(_file))
+                    _file_abspath = file.parent.resolve().joinpath(_file)
+                    if _file_abspath.is_relative_to(_realpath):
+                        print("recursive symbolic link detected")
+                        print(_realpath, _file, file.parent.resolve().joinpath(_file))
+                        continue
+                    else:
+                        dirpaths.put(_file)
+                dirpaths.put(_file)
+            elif _file.exists() and _file.is_file():
+                hash2 = generate(_file, *args.hash_algo)
+                print(hash2)
+            else:
+                print(f'file or dir {_file} not found')
 
- 
+
