@@ -12,12 +12,8 @@
 ### Install and run
 There are multiple ways to run the hasher command line interface.
 #### 1. Git clone and run `python -m hasher`
-Just clone the repository.
 ```
 git clone https://github.com/random-user-00/hasher.git
 python -m hasher -v
-``
-
-
-
-
+```
+Only caveat is that you have to be in the parent directory of this repository or in the working directory.
