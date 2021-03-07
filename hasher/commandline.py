@@ -13,9 +13,15 @@ def execute_command():
     Accepts single algorithm or space-seperated list of algorithms.
     Use -r if you wish to recursively scan directory.
     """
+
+    _usage = """
+    hasher -f file/dir -a hash-algorithm [-r] [-v] [-h]
+    Run hasher -h/--help for detailed help
+    """
+
     _prog_name = shared.PROG_NAME
     parser = argparse.ArgumentParser(description=descr, formatter_class=formatter,
-                    prog=_prog_name, add_help=False)
+                    prog=_prog_name, add_help=False, usage=_usage)
 
     required_args = parser.add_argument_group("Required Arguments")
     _f_help = "file/directory path(s), accepts space-separated list of file/dir."
