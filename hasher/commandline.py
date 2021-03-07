@@ -8,16 +8,20 @@ from . import shared
 def execute_command():
     formatter = argparse.RawDescriptionHelpFormatter
     descr = """
+Description:
     Provide -f file/dir path(s) and -a hash algorithm(s) to calculate file hash.
     Accepts single file/directory or space-separated list of files/directories.
     Accepts single algorithm or space-seperated list of algorithms.
-    Use -r if you wish to recursively scan directory.
-    """
+    Use -r if you wish to recursively scan directory."""
 
     _usage = """
     hasher -f file/dir -a hash-algorithm [-r] [-v] [-h]
     Run hasher -h/--help for detailed help
-    """
+usage example:
+     hasher -f /tmp/file1 -a sha256
+    or if you are running as Python module
+     python -m hasher /tmp/file1 -a sha256
+     """
 
     _prog_name = shared.PROG_NAME
     parser = argparse.ArgumentParser(description=descr, formatter_class=formatter,
