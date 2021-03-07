@@ -1,37 +1,46 @@
 import argparse
 import queue
 import pathlib
+import io
 
 from . import filehasher
 from . import shared
 
 def execute_command():
     formatter = argparse.RawDescriptionHelpFormatter
-    descr ='''
-        Provide -f file/dir path(s) and -a hash algorithm(s) to calculate file hash.
-        Accepts single file/directory or space-separated list of files/directories.
-        Accepts single algorithm or space-seperated list of algorithms.
-        Use -r if you wish to recursively scan directory.
-        '''
+    descr = '''
+    Provide -f file/dir path(s) and -a hash algorithm(s) to calculate file hash.
+    Accepts single file/directory or space-separated list of files/directories.
+    Accepts single algorithm or space-seperated list of algorithms.
+    Use -r if you wish to recursively scan directory.
+    '''
     _prog_name = shared.PROG_NAME
-    parser = argparse.ArgumentParser(description=descr, formatter_class=formatter, prog=_prog_name)
-    parser.add_argument("-f", "--file", dest="userpaths", nargs='+',
+    parser = argparse.ArgumentParser(description=descr, formatter_class=formatter,
+                                    prog=_prog_name, add_help=False)
+
+    required_args = parser.add_argument_group("Required Arguments")
+    required_args.add_argument("-f", "--file", dest="userpaths", nargs='+',
+                        metavar="file/dir",
                         type=pathlib.Path, required=True,
-                        help="file/directory path(s)")
+                        help="file/directory path(s), accepts space-separated list of file/dir.")
     _a_choices = shared.SUPPORTED_HASH
-    parser.add_argument("-a", "--algo", dest="hash_algo", type=str, nargs='+',
-                        metavar="hash_algorithm",
+    required_args.add_argument("-a", "--algo", dest="hash_algo", type=str, nargs='+',
+                        metavar="hash-algorithm",
                         choices=_a_choices, required=True,
-                        help="Suppprted algorithms:  %(choices)s")
+                        help="hash algorithm(s), accepts single or space separated list of hash function names. Suppprted hash functions:  %(choices)s")
+    
+    optional_args = parser.add_argument_group("optional Arguments")
     _r_help = "Recursively scan subdirectories for files if -f is directory"
-    parser.add_argument("-r", "--recurse", dest="recurse",
+    optional_args.add_argument("-r", "--recurse", dest="recurse",
                         default=False, action="store_true",
                         required=False, help=_r_help)
-    parser.add_argument("-v", "--version", action="version",
+    optional_args.add_argument("-v", "--version", action="version",
                     version=f'{_prog_name} {shared.__version__}',
-                    help="Display version")                    
+                    help="Display version")
+    optional_args.add_argument("-h", "--help", action="help", help="Display this help message")
+
     args = parser.parse_args()
-    
+
     path_q: queue.Queue[pathlib.Path] = queue.Queue()
     for _userpath in args.userpaths:  # -f arguments to queue
         if _userpath.exists() and not _userpath.is_symlink():
