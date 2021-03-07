@@ -5,7 +5,6 @@ import pathlib
 from . import filehasher
 from . import shared
 
-
 def execute_command():
     formatter = argparse.RawDescriptionHelpFormatter
     descr ='''
@@ -32,6 +31,7 @@ def execute_command():
                     version=f'{_prog_name} {shared.__version__}',
                     help="Display version")                    
     args = parser.parse_args()
+    
     path_q: queue.Queue[pathlib.Path] = queue.Queue()
     for _userpath in args.userpaths:  # -f arguments to queue
         if _userpath.exists() and not _userpath.is_symlink():
