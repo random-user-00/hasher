@@ -51,25 +51,23 @@ usage example:
                     help="Display this help message")
 
     args = parser.parse_args()
+    print(args)
 
     path_q: queue.Queue[pathlib.Path] = queue.Queue()
     for _userpath in args.userpaths:  # -f arguments to queue
-        if _userpath.exists() and not _userpath.is_symlink():
+        if (_userpath.exists() and not _userpath.is_symlink()) and _userpath.is_dir():
             path_q.put(_userpath)
-        else:
-            print(f'file/dir path {_userpath} not found or it is a symbolic link.')
-    while not path_q.empty():
-        path: pathlib.Path = path_q.get()
-        if (path.exists() and path.is_file()) and not path.is_symlink():
+        elif (_userpath.exists() and not _userpath.is_symlink()) and _userpath.is_file():
             try:
-                hash = filehasher.generate(path, *args.hash_algo)  # Unpack args.hash_algo
-                print(hash)
+                _hash1 = filehasher.generate(_userpath, *args.hash_algo)  # Unpack args.hash_algo
+                print(_hash1)
             except PermissionError:
-                print(f'No permission to read {path}')
-            continue
+                print(f'No permission to read {_userpath}')
         else:
-            print(f'file/dir path {path} not found or it is a symbolic link.')
-            
+            print(f'info:1 file/dir path {_userpath} not found or it is a symbolic link.')
+
+    while not path_q.empty():
+        path: pathlib.Path = path_q.get()         
         child: pathlib.Path
         for child in path.iterdir():
             if (child.exists() and child.is_dir()) and not child.is_symlink():
@@ -77,9 +75,9 @@ usage example:
                     path_q.put(child)
             elif (child.exists() and child.is_file()) and not child.is_symlink():
                 try:
-                    hash = filehasher.generate(child, *args.hash_algo)  # Unpack args.hash_algo
-                    print(hash)
+                    _hash = filehasher.generate(child, *args.hash_algo)  # Unpack args.hash_algo
+                    print(_hash)
                 except PermissionError:
                     print(f'No permission to read {child}')
             else:
-                print(f'file/dir path {child} not found or it is a symbolic link.')
+                print(f'info:2 file/dir path {child} not found or it is a symbolic link.')
