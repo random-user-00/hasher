@@ -16,18 +16,19 @@ def generate(file_path, hash_algo, *hash_algos):
     {'/home/tejas/Downloads/chrome-linux.zip': {'md5': '3d9d23669bd49f2bf5d92b076f4428c8', 'sha1': '64c73a9fe00079a828bdd04ec42aa2f2410991a3'}}
     >>> 
     """
-# os.path.expanduser(path) will expand the path if it starts with ~ 
-# If path doesn't contain ~ it will be returned unchanged. 
+    # os.path.expanduser(path) will expand the path if it starts with ~ 
+    # If path doesn't contain ~ it will be returned unchanged. 
     path_expanded = os.path.expanduser(file_path)
 
-# If script is run as command, argument file_path is always of type PosixPath.
-# If function is called from another module, argument file_path can be a string or path like object.
-# To be consistent, let's store it as string. This string_path will serve as key in returned dictionary.
+    # If script is run as command, argument file_path is always of type PosixPath.
+    # If function is called from another module, argument file_path can be a string or path like object.
+    # To be consistent, let's store it as string. This string_path will serve as key in returned dictionary.
     path_as_str = str(pathlib.Path(path_expanded).resolve(strict=True))
     hash_algos =  (hash_algo,) + hash_algos
     hash_objects = {}
     hash_hex = {path_as_str: {}}
-
+    # named constructors are faster than new(), but usint it would be harder
+    # to create constructors based on user arguments.
     for algo in hash_algos:
         if algo not in shared.SUPPORTED_HASH:
             raise ValueError(f'Unknown hash type {algo!r}, known types: {shared.SUPPORTED_HASH}')
@@ -38,26 +39,15 @@ def generate(file_path, hash_algo, *hash_algos):
         read_size = io.DEFAULT_BUFFER_SIZE
         with open(path_as_str, 'rb', buffering=buffer_size) as _f:
             content = _f.read(read_size)
-#            reads = 1
-#            hash_generator_sha256 = hashlib.sha256()
-# According to Python documentation named constructors are faster than new(),
-# but then with named constrctors it will be harder to create constructors based on user arguments.
-#            hash_generator_sha256 = hashlib.new('sha256')
             while content:
                 for algo in hash_objects:
                     hash_objects[algo].update(content)
-#                hash_generator_sha256.update(content)
                 content = _f.read(read_size)
-#                reads += 1             
             for _hash, _value in hash_objects.items():
-#                print(file_path, _value.name, _value.hexdigest())
                 hash_hex[path_as_str][_value.name] = _value.hexdigest()         
-#            print(hash_hex, sys.getsizeof(hash_hex))
-#            print(f'Total reads {reads}')
             return hash_hex
 def validate():
     """Validate user input before passing it to generate().
 
     """
     pass
-
