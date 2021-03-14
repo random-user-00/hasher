@@ -31,5 +31,8 @@ jobs:
       - name: Print python version
         run: python --version
 
+      - name: Print working directory
+        run: pwd
+
       - name: Run tests
         run: python -m hasher.test
