@@ -34,5 +34,8 @@ jobs:
       - name: Print working directory
         run: pwd
 
+      - name: Print contents of working directory
+        run: ls -la
+
       - name: Run tests
         run: python -m hasher.test
