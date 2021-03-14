@@ -38,4 +38,4 @@ jobs:
         run: ls -la
 
       - name: Run tests
-        run: python -m unittest test
+        run: python -m test
