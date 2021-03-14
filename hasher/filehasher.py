@@ -5,6 +5,7 @@ import pathlib
 import hashlib
 from . import shared
 
+
 def generate(file_path, hash_algo, *hash_algos):
     """Takes a single path like object/path string and a single algorithm name/tuple 
     of algorithm names or  as argument and returns a dictionary of calculated hashes.
@@ -16,8 +17,8 @@ def generate(file_path, hash_algo, *hash_algos):
     {'/home/tejas/Downloads/chrome-linux.zip': {'md5': '3d9d23669bd49f2bf5d92b076f4428c8', 'sha1': '64c73a9fe00079a828bdd04ec42aa2f2410991a3'}}
     >>> 
     """
-    # os.path.expanduser(path) will expand the path if it starts with ~ 
-    # If path doesn't contain ~ it will be returned unchanged. 
+    # os.path.expanduser(path) will expand the path if it starts with ~
+    # If path doesn't contain ~ it will be returned unchanged.
     path_expanded = os.path.expanduser(file_path)
 
     # If script is run as command, argument file_path is always of type PosixPath.
@@ -44,8 +45,10 @@ def generate(file_path, hash_algo, *hash_algos):
                     hash_objects[algo].update(content)
                 content = _f.read(read_size)
             for _hash, _value in hash_objects.items():
-                hash_hex[path_as_str][_value.name] = _value.hexdigest()         
+                hash_hex[path_as_str][_value.name] = _value.hexdigest()
             return hash_hex
+
+
 def validate():
     """Validate user input before passing it to generate().
 
