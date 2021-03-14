@@ -1,8 +1,8 @@
-#!/usr/bin/python
 import os
 import io
 import pathlib
 import hashlib
+
 from . import shared
 
 
@@ -25,7 +25,7 @@ def generate(file_path, hash_algo, *hash_algos):
     # If function is called from another module, argument file_path can be a string or path like object.
     # To be consistent, let's store it as string. This string_path will serve as key in returned dictionary.
     path_as_str = str(pathlib.Path(path_expanded).resolve(strict=True))
-    hash_algos =  (hash_algo,) + hash_algos
+    hash_algos = (hash_algo,) + hash_algos
     hash_objects = {}
     hash_hex = {path_as_str: {}}
     # named constructors are faster than new(), but usint it would be harder
