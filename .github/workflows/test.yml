@@ -25,12 +25,12 @@ jobs:
     steps:
       - name: Print some github variables
         run: echo "GITHUB_SHA $GITHUB_SHA, GITHUB_REF $GITHUB_REF, GITHUB_HEAD_REF $GITHUB_HEAD_REF, GITHUB_BASE_REF $GITHUB_BASE_REF"
-        
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          ref: ${{ GITHUB_SHA }}
+          ref: ${{ github.sha }}
 
 
 
