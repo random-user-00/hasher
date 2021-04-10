@@ -21,18 +21,23 @@ def commandline(args):
     while not path_q.empty():
         path: pathlib.Path = path_q.get()         
         child: pathlib.Path
-        for child in path.iterdir():
-            if (child.exists() and child.is_dir()) and not child.is_symlink():
-                if args.recurse:
-                    path_q.put(child)
-            elif (child.exists() and child.is_file()) and not child.is_symlink():
-                try:
-                    _hash = filehasher.generate(child, *args.hash_algo)  # Unpack args.hash_algo
-                    print(_hash)
-                except PermissionError:
-                    print(f'No permission to read {child}')
-            else:
-                print(f'info:2 file/dir path {child} not found or it is a symbolic link.')
+        try:
+            for child in path.iterdir():
+                if (child.exists() and child.is_dir()) and not child.is_symlink():
+                    if args.recurse:
+                        path_q.put(child)
+                elif (child.exists() and child.is_file()) and not child.is_symlink():
+                    try:
+                        _hash = filehasher.generate(child, *args.hash_algo)  # Unpack args.hash_algo
+                        print(_hash)
+                    except PermissionError:
+                        print(f'Exception: PermissionError: No permission to read {child}')
+                else:
+                    print(f'info:2 file/dir path {child} not found or it is a symbolic link.')
+        except PermissionError:
+            print(f'Exception: PermissionError: No permission to read directory {path}')
+
+
 
 
 def execute_command():
