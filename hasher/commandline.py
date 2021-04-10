@@ -37,9 +37,6 @@ def commandline(args):
         except PermissionError:
             print(f'Exception: PermissionError: No permission to read directory {path}')
 
-
-
-
 def execute_command():
     _get_args = arghandler.process_args()
     args = _get_args.parse_args()
