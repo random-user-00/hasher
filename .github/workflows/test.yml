@@ -27,7 +27,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          ref: develop
 
       # Runs a single command using the runners shell
       - name: Print python version
