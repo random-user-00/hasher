@@ -32,8 +32,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-
-
       # Runs a single command using the runners shell
       - name: Print python version
         run: python --version
