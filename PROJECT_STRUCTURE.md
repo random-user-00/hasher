@@ -1,5 +1,6 @@
 ## Directory structure
 
+```
 hasher/
 ├── hasher/
 │   ├── arghandler.py
@@ -16,3 +17,4 @@ hasher/
     ├── __init__.py
     ├── __main__.py
     └── test_arghandler.py
+```
